@@ -1,27 +1,46 @@
 #!/usr/bin/python3
 import sys
 
-def factorize(number):
-    for i in range(2, int(number ** 0.5) + 1):
-        if number % i == 0:
-            return i, number // i
-    return number, 1
+def factorize_number(n):
+    """
+    Factorize a number into two smaller numbers.
 
-if len(sys.argv) != 2:
-    print("Usage: factors <file>")
-    sys.exit(1)
+    Args:
+        n (int): The number to factorize.
 
-input_file = sys.argv[1]
+    Returns:
+        tuple: A tuple containing two factors (p, q) such that n = p * q.
+    """
+    for i in range(2, n // 2 + 1):
+        if n % i == 0:
+            return i, n // i
+    return n, 1
 
-try:
-    with open(input_file, 'r') as file:
-        for line in file:
-            number = int(line)
-            factors = factorize(number)
-            print(f"{number}={factors[0]}*{factors[1}")
+def main():
+    """
+    Main function to read numbers from a file and factorize them.
+    """
+    if len(sys.argv) != 2:
+        print("Usage: factors <file>")
+        sys.exit(1)
 
-except FileNotFoundError:
-    print(f"File '{input_file}' not found.")
-except ValueError:
-    print("Invalid input in the file. Make sure all lines are valid natural numbers greater than 1.")
+    input_file = sys.argv[1]
+
+    try:
+        with open(input_file, 'r') as file:
+            for line in file:
+                n = int(line.strip())
+                if n <= 1:
+                    print(f"Invalid input: {n} is not a natural number greater than 1")
+                    continue
+                p, q = factorize_number(n)
+                print(f"{n}={p}*{q}")
+
+    except FileNotFoundError:
+        print(f"File not found: {input_file}")
+    except ValueError:
+        print(f"Invalid input: File contains non-numeric data")
+
+if __name__ == "__main__":
+    main()
 
