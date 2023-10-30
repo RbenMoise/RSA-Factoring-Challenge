@@ -1,46 +1,49 @@
-#!/usr/bin/python3
-import sys
+#!/usr/bin/env bash
+# is a factors challenge
 
-def factorize_number(n):
-    """
-    Factorize a number into two smaller numbers.
+check_factor()
+{
+	if [ $# -ne 3 ];
+        then
+                args=("$@")
+                count=0
+                num2=1
+                for a in ${args[*]};
+                do
+                        if [ $count -gt 1 ];
+                        then
+                                num2=$(echo $a*$num2 | bc)
+                        fi
+                        count=$((count + 1))
+                done
+        else
+                num2=$3
+        fi
 
-    Args:
-        n (int): The number to factorize.
+        num1=$2
+        num=$(echo "$1" | tr ':' '=')
 
-    Returns:
-        tuple: A tuple containing two factors (p, q) such that n = p * q.
-    """
-    for i in range(2, n // 2 + 1):
-        if n % i == 0:
-            return i, n // i
-    return n, 1
+        result=$(echo "if($num2 > $num1) 1 else 0" | bc)
+	        if ((result == 1)); then
+		        numcp=$num1
+		        num1=$num2
+		        num2=$numcp
+                fi
 
-def main():
-    """
-    Main function to read numbers from a file and factorize them.
-    """
-    if len(sys.argv) != 2:
-        print("Usage: factors <file>")
-        sys.exit(1)
+        echo "$num$num1*$num2"
+}
 
-    input_file = sys.argv[1]
+if [ $# -ne 1 ]
+then
+        echo 'Usage: factors <file>'
+        exit 1
+else
 
-    try:
-        with open(input_file, 'r') as file:
-            for line in file:
-                n = int(line.strip())
-                if n <= 1:
-                    print(f"Invalid input: {n} is not a natural number greater than 1")
-                    continue
-                p, q = factorize_number(n)
-                print(f"{n}={p}*{q}")
+        while read i
+        do
 
-    except FileNotFoundError:
-        print(f"File not found: {input_file}")
-    except ValueError:
-        print(f"Invalid input: File contains non-numeric data")
+                result=$(factor "$i")
+                check_factor $result
 
-if __name__ == "__main__":
-    main()
-
+        done < "$1"
+fi
