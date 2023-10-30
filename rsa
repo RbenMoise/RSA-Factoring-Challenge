@@ -1,32 +1,53 @@
-#!/user/bin/python3
-#library to get arguments
+#!/usr/bin/python3
 import sys
+import math
 
+def gcd(a, b):
+    while b:
+        a, b = b, a % b
+    return a
 
-# fn unpack number factorial
-def fc():
-    """
-    function fc to search file to convert number and format n=p*q
-    """
-    try:
-        revfile = sys.argv[1]
-        with open(revfile) as f:
-            for revnumber in f:
-                revnumber = int(revnumber)
-                if revnumber % 2 == 0:
-                        print("{}={}*{}".format(revnumber, revnumber // 2, 2))
-                        continue
-                i = 3
-                while i < revnumber // 2:
-                    if revnumber % i == 0:
-                        print("{}={}*{}".format(revnumber, revnumber // i, i))
-                        break
-                    i = i + 2
-                if i == (revnumber // 2) + 1:
-                    print("{}={}*{}".format(revnumber, revnumber, 1))
-    except (IndexError):
-        pass
+def pollard_rho(n):
+    x, y, d = 2, 2, 1
+    f = lambda x: (x ** 2 + 1) % n
 
+    while d == 1:
+        x = f(x)
+        y = f(f(y))
+        d = gcd(abs(x - y), n)
 
-# autostart
-fc()
+    if d == n:
+        return None
+    return d
+
+def factorize_rsa_number(n):
+    factors = []
+    while n > 1:
+        factor = pollard_rho(n)
+        if factor is None:
+            factors.append(n)
+            break
+        while n % factor == 0:
+            n //= factor
+        factors.append(factor)
+    return factors
+
+if len(sys.argv) != 2:
+    print("Usage: rsa <file>")
+    sys.exit(1)
+
+input_file = sys.argv[1]
+
+try:
+    with open(input_file, 'r') as file:
+        for line in file:
+            n = int(line.strip())
+            factors = factorize_rsa_number(n)
+            factors_str = '*'.join(map(str, factors))
+            print(f"{n}={factors_str}")
+
+except FileNotFoundError:
+    print(f"File not found: {input_file}")
+except ValueError:
+    print(f"Invalid input: File contains non-numeric data")
+
