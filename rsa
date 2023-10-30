@@ -1,53 +1,48 @@
-#!/usr/bin/python3
-import sys
-import math
+#!/usr/bin/env bash
+#is a challenge
+check_factor()
+{
+	if [ $# -ne 3 ];
+        then
+                args=("$@")
+                count=0
+                num2=1
+                for a in ${args[*]};
+                do
+                        if [ $count -gt 1 ];
+                        then
+                                num2=$(echo $a*$num2 | bc)
+                        fi
+                        count=$((count + 1))
+                done
+        else
+                num2=$3
+        fi
 
-def gcd(a, b):
-    while b:
-        a, b = b, a % b
-    return a
+        num1=$2
+        num=$(echo "$1" | tr ':' '=')
 
-def pollard_rho(n):
-    x, y, d = 2, 2, 1
-    f = lambda x: (x ** 2 + 1) % n
+        result=$(echo "if($num2 > $num1) 1 else 0" | bc)
+	        if ((result == 1)); then
+		        numcp=$num1
+		        num1=$num2
+		        num2=$numcp
+                fi
 
-    while d == 1:
-        x = f(x)
-        y = f(f(y))
-        d = gcd(abs(x - y), n)
+        echo "$num$num1*$num2"
+}
 
-    if d == n:
-        return None
-    return d
+if [ $# -ne 1 ]
+then
+        echo 'Usage: rsa <file>'
+        exit 1
+else
 
-def factorize_rsa_number(n):
-    factors = []
-    while n > 1:
-        factor = pollard_rho(n)
-        if factor is None:
-            factors.append(n)
-            break
-        while n % factor == 0:
-            n //= factor
-        factors.append(factor)
-    return factors
+        while read i
+        do
 
-if len(sys.argv) != 2:
-    print("Usage: rsa <file>")
-    sys.exit(1)
+                result=$(factor "$i")
+                check_factor $result
 
-input_file = sys.argv[1]
-
-try:
-    with open(input_file, 'r') as file:
-        for line in file:
-            n = int(line.strip())
-            factors = factorize_rsa_number(n)
-            factors_str = '*'.join(map(str, factors))
-            print(f"{n}={factors_str}")
-
-except FileNotFoundError:
-    print(f"File not found: {input_file}")
-except ValueError:
-    print(f"Invalid input: File contains non-numeric data")
-
+        done < "$1"
+fi
